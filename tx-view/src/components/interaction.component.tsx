@@ -101,8 +101,8 @@ export default function TransactionComponent() {
       });
   }, []);
 
-  // Reset form and context
-  const resetContext = () => {
+  // Reset states of form and inputs
+  const resetState = () => {
       if (customerRef.current) customerRef.current.value = "";
       if (amountRef.current) amountRef.current.value = "";
       if (statusRef.current) statusRef.current.value = "";
@@ -145,10 +145,10 @@ export default function TransactionComponent() {
           status: statusRef.current ? statusRef.current.value as 'pending' | 'accepted' | 'rejected' : currentTransaction.status,
         });
     }
-    resetContext();
+    resetState();
   };
 
-  const handleEdit = (tx: Transaction) => () => {
+  const handleEditTransaction = (tx: Transaction) => () => {
     setAddOrEdit(true);
     setCurrentTransaction(tx);
   }
@@ -162,7 +162,7 @@ export default function TransactionComponent() {
           value={statusFilter}
           onChange={e => {
             setStatusFilter(e.target.value);
-            resetContext();
+            resetState();
           }}>
           <option value="">כל הסטטוסים</option>
           <option value="accepted">מאושר</option>
@@ -175,7 +175,7 @@ export default function TransactionComponent() {
           value={dateFilter}
           onChange={e => {
             setDateFilter(e.target.value);
-            resetContext();
+            resetState();
           }}
         />
       </div>
@@ -207,7 +207,7 @@ export default function TransactionComponent() {
               <td className="text">{t.amount.toLocaleString()} ₪</td>
               <td className="text">{t.status}</td>
               <td>
-                <button onClick={handleEdit(t)}>✏️</button>
+                <button onClick={handleEditTransaction(t)}>✏️</button>
                 <button onClick={() => {
                   removeTransaction(t.id);
                 }}>🗑️</button>
@@ -243,7 +243,7 @@ export default function TransactionComponent() {
           {currentTransaction !== null
             ? <div style={{ display: "flex", flexDirection: "row" }}>
               <span>Current status: {currentTransaction.status}</span>
-              <select ref={statusRef} >
+              <select ref={statusRef}>
                 <option value="accepted">מאושר</option>
                 <option value="pending">ממתין</option>
                 <option value="rejected">נדחה</option>
@@ -253,7 +253,7 @@ export default function TransactionComponent() {
           }
 
           <button type="submit">Save</button>
-          <button onClick={() => resetContext()}>Cancel</button>
+          <button onClick={() => resetState()}>Cancel</button>
         </form>
         : <button onClick={() => {
           setAddOrEdit(true);
