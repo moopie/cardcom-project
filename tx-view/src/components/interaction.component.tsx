@@ -115,7 +115,7 @@ export default function TransactionComponent() {
       // toggle asc/desc
       setSortOrder(prev => (prev === "asc" ? "desc" : "asc"));
     } else {
-      // new column → start with ascending
+      // new column -> start with ascending
       setSortField(field);
       setSortOrder("asc");
     }
@@ -123,30 +123,29 @@ export default function TransactionComponent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (customerRef.current && amountRef.current) {
-      if (customerRef.current.value !== "" && amountRef.current.value !== "") {
-        const amount = Number(amountRef.current.value);
-        if (!isNaN(amount) && amount > 0) {
-          // If we have a current customer we are in edit mode
-          if (currentTransaction !== null) {
-            updateTransaction(currentTransaction.id, {
-              customer: customerRef.current.value,
-              amount: amount,
-              status: statusRef.current ? statusRef.current.value as 'pending' | 'accepted' | 'rejected' : currentTransaction.status,
-            });
-          } else {
-            addTransaction({
-              id: transactions.length + 1,
-              customer: customerRef.current.value,
-              amount: amount,
-              date: new Date().toISOString(),
-              status: "pending",
-            });
-          }
-        }
-      }
-      resetContext();
+    if (currentTransaction === null) {
+      if (!customerRef.current || !amountRef.current) return;
+
+      const customer = customerRef.current.value;
+      const amount = Number(amountRef.current.value);
+
+      if (customer === "" || isNaN(amount) || amount <= 0) return;
+
+      addTransaction({
+        id: transactions.length + 1,
+        customer: customer,
+        amount: amount,
+        date: new Date().toISOString(),
+        status: "pending",
+      });
+    } else {
+        updateTransaction(currentTransaction.id, {
+          customer: currentTransaction.customer,
+          amount: currentTransaction.amount,
+          status: statusRef.current ? statusRef.current.value as 'pending' | 'accepted' | 'rejected' : currentTransaction.status,
+        });
     }
+    resetContext();
   };
 
   const handleEdit = (tx: Transaction) => () => {
@@ -211,7 +210,6 @@ export default function TransactionComponent() {
                 <button onClick={handleEdit(t)}>✏️</button>
                 <button onClick={() => {
                   removeTransaction(t.id);
-                  resetContext();
                 }}>🗑️</button>
               </td>
             </tr>
@@ -221,20 +219,26 @@ export default function TransactionComponent() {
 
       {enableAddOrEdit ?
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "row", gap: "8px", maxWidth: 240 }}>
-          <input
-            ref={customerRef}
-            placeholder="Customer"
-            required
-            minLength={3}
-          />
-          <input
-            ref={amountRef}
-            type="number"
-            placeholder="Amount"
-            min={0.01}
-            step="0.01"
-            required
-          />
+          {currentTransaction === null
+           ?  <input
+              ref={customerRef}
+              placeholder="Customer"
+              required
+              minLength={3}
+            />
+            : <label>{currentTransaction.customer}</label>
+          }
+          {currentTransaction === null
+            ? <input
+              ref={amountRef}
+              type="number"
+              placeholder="Amount"
+              min={0.01}
+              step="0.01"
+              required
+            />
+            : <label>{currentTransaction.amount} ₪</label>
+          }
 
           {currentTransaction !== null
             ? <div style={{ display: "flex", flexDirection: "row" }}>
@@ -252,7 +256,7 @@ export default function TransactionComponent() {
           <button onClick={() => resetContext()}>Cancel</button>
         </form>
         : <button onClick={() => {
-          resetContext();
+          setAddOrEdit(true);
         }}>הוסף עסקה</button>
       }
     </div>
