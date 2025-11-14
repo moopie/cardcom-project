@@ -1,12 +1,13 @@
 // App.tsx
 import React, { useState, useRef, useEffect } from "react";
+import "./interaction.component.css";
 
 interface Transaction {
-    id: number;
-    customer: string;
-    amount: number;
-    date: string;
-    status: 'pending' | 'accepted' | 'rejected';
+  id: number;
+  customer: string;
+  amount: number;
+  date: string;
+  status: 'pending' | 'accepted' | 'rejected';
 }
 
 const initialData: Transaction[] = [
@@ -26,11 +27,31 @@ export default function TransactionComponent() {
   const amountRef = useRef<HTMLInputElement>(null);
   const statusRef = useRef<HTMLSelectElement>(null);
 
+  const [sortField, setSortField] = useState<keyof Transaction | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
   const filtered = transactions.filter(t => {
+    const isoDateOnly = t.date.split("T")[0]
+    console.log("Filtering:", { statusFilter, dateFilter, transactionDate: isoDateOnly, result: dateFilter === isoDateOnly });
     return (
       (!statusFilter || t.status === statusFilter) &&
-      (!dateFilter || t.date >= dateFilter)
+      (!dateFilter || dateFilter === isoDateOnly)
     );
+  }).sort((a, b) => {
+    if (!sortField) return 0;
+
+    const valA = a[sortField];
+    const valB = b[sortField];
+
+    // numbers
+    if (typeof valA === "number" && typeof valB === "number") {
+      return sortOrder === "asc" ? valA - valB : valB - valA;
+    }
+
+    // strings (name, date, status)
+    return sortOrder === "asc"
+      ? String(valA).localeCompare(String(valB))
+      : String(valB).localeCompare(String(valA));
   });
 
   const addTransaction = (tx: Transaction) => {
@@ -48,14 +69,36 @@ export default function TransactionComponent() {
   };
 
   useEffect(() => {
-  if (editTransaction !== null) {
-    if (nameRef.current && amountRef.current && statusRef.current) {
-      nameRef.current.value = editTransaction.customer;
-      amountRef.current.value = editTransaction.amount.toString();
-      statusRef.current.value = editTransaction.status;
+    if (editTransaction !== null) {
+      if (nameRef.current && amountRef.current && statusRef.current) {
+        nameRef.current.value = editTransaction.customer;
+        amountRef.current.value = editTransaction.amount.toString();
+        statusRef.current.value = editTransaction.status;
+      }
     }
-  }
-}, [editTransaction, transactions]);
+  }, [editTransaction]);
+
+  useEffect(() => {
+    fetch("/data.json")
+      .then(res => res.json())
+      .then((data: Transaction[]) => {
+        setTransactions(data);
+      })
+      .catch(err => {
+        console.error("Error fetching data:", err);
+      });
+  }, []);
+
+  const handleSort = (field: keyof Transaction) => {
+    if (sortField === field) {
+      // toggle asc/desc
+      setSortOrder(prev => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      // new column → start with ascending
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +118,7 @@ export default function TransactionComponent() {
               id: transactions.length + 1,
               customer: nameRef.current!.value,
               amount: amount,
-              date: new Date().toISOString().split("T")[0],
+              date: new Date().toISOString(),
               status: "pending",
             });
           }
@@ -101,8 +144,11 @@ export default function TransactionComponent() {
       <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
         <select
           value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-        >
+          onChange={e => {
+            setStatusFilter(e.target.value);
+            setEditTransaction(null);
+            setEdit(false);
+          }}>
           <option value="">כל הסטטוסים</option>
           <option value="accepted">מאושר</option>
           <option value="pending">ממתין</option>
@@ -112,17 +158,26 @@ export default function TransactionComponent() {
         <input
           type="date"
           value={dateFilter}
-          onChange={e => setDateFilter(e.target.value)}
+          onChange={e => {
+            console.log("Date filter changed:", e.target.value);
+            setDateFilter(e.target.value);
+            setEditTransaction(null);
+            setEdit(false);
+          }}
         />
       </div>
 
       <table width="100%" border={1} cellPadding={6}>
         <thead>
           <tr>
-            <th>שם הלקוח</th>
-            <th>תאריך</th>
-            <th>סכום</th>
-            <th>סטטוס</th>
+            <th onClick={() => handleSort("customer")}>{sortField === "customer" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+שם הלקוח</th>
+            <th onClick={() => handleSort("date")}>{sortField === "date" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+תאריך</th>
+            <th onClick={() => handleSort("amount")}>{sortField === "amount" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+סכום</th>
+            <th onClick={() => handleSort("status")}>{sortField === "status" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+סטטוס</th>
             <th></th>
           </tr>
         </thead>
@@ -134,13 +189,17 @@ export default function TransactionComponent() {
                 background: t.amount > 10000 ? "#fff5cc" : "white",
               }}
             >
-              <td>{t.customer}</td>
-              <td>{t.date}</td>
-              <td>{t.amount.toLocaleString()} ₪</td>
-              <td>{t.status}</td>
+              <td className="text">{t.customer}</td>
+              <td className="text">{t.date}</td>
+              <td className="text">{t.amount.toLocaleString()} ₪</td>
+              <td className="text">{t.status}</td>
               <td>
                 <button onClick={handleEdit(t)}>✏️</button>
-                <button onClick={() => removeTransaction(t.id)}>🗑️</button>
+                <button onClick={() => {
+                  removeTransaction(t.id);
+                  setEditTransaction(null);
+                  setEdit(false);
+                }}>🗑️</button>
               </td>
             </tr>
           ))}
@@ -163,15 +222,15 @@ export default function TransactionComponent() {
             required
           />
 
-          { editTransaction !== null
-            ?  <div>
-                  <span>{editTransaction.status}</span>
-                  <select ref={statusRef} >
-                    <option value="accepted">מאושר</option>
-                    <option value="pending">ממתין</option>
-                    <option value="rejected">נדחה</option>
-                  </select>
-              </div>
+          {editTransaction !== null
+            ? <div style={{ display: "flex", flexDirection: "row" }}>
+              <span>Current status: {editTransaction.status}</span>
+              <select ref={statusRef} >
+                <option value="accepted">מאושר</option>
+                <option value="pending">ממתין</option>
+                <option value="rejected">נדחה</option>
+              </select>
+            </div>
             : null
           }
 
