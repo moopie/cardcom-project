@@ -11,6 +11,7 @@ interface Transaction {
   status: 'pending' | 'accepted' | 'rejected';
 }
 
+// Initial hardcoded data
 const initialData: Transaction[] = [
   { id: 1, customer: "יוסי כהן", date: "2025-10-01", amount: 8500, status: "accepted" },
   { id: 2, customer: "דנה לוי", date: "2025-09-22", amount: 12000, status: "rejected" },
@@ -20,17 +21,26 @@ const initialData: Transaction[] = [
 export default function TransactionComponent() {
   const [transactions, setTransactions] = useState<Transaction[]>(initialData);
 
+  // filters for date and status dropdowns
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
+
+  // In case of an edit, we store the current transaction here
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
+
+  // If we are in an edit or add mode
   const [enableAddOrEdit, setAddOrEdit] = useState(false);
+
+  // Refs for form inputs
   const customerRef = useRef<HTMLInputElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
   const statusRef = useRef<HTMLSelectElement>(null);
 
+  // Sorting and ordering
   const [sortField, setSortField] = useState<keyof Transaction | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+  // Only show filtered transactions
   const filtered = transactions.filter(t => {
     const isoDateOnly = t.date.split("T")[0]
     return (
@@ -48,6 +58,7 @@ export default function TransactionComponent() {
       return sortOrder === "asc" ? valA - valB : valB - valA;
     }
 
+    // strings
     return sortOrder === "asc"
       ? String(valA).localeCompare(String(valB))
       : String(valB).localeCompare(String(valA));
@@ -67,6 +78,7 @@ export default function TransactionComponent() {
     );
   };
 
+  // Handle current transaction changes
   useEffect(() => {
     if (currentTransaction !== null) {
       if (customerRef.current && amountRef.current && statusRef.current) {
@@ -77,6 +89,7 @@ export default function TransactionComponent() {
     }
   }, [currentTransaction]);
 
+  // Fetch transaction data
   useEffect(() => {
     fetch("/data.json")
       .then(res => res.json())
@@ -88,6 +101,7 @@ export default function TransactionComponent() {
       });
   }, []);
 
+  // Reset form and context
   const resetContext = () => {
       if (customerRef.current) customerRef.current.value = "";
       if (amountRef.current) amountRef.current.value = "";
@@ -113,7 +127,7 @@ export default function TransactionComponent() {
       if (customerRef.current.value !== "" && amountRef.current.value !== "") {
         const amount = Number(amountRef.current.value);
         if (!isNaN(amount) && amount > 0) {
-          console.log(`transactions: ${transactions.length}`);
+          // If we have a current customer we are in edit mode
           if (currentTransaction !== null) {
             updateTransaction(currentTransaction.id, {
               customer: customerRef.current.value,
@@ -123,7 +137,7 @@ export default function TransactionComponent() {
           } else {
             addTransaction({
               id: transactions.length + 1,
-              customer: customerRef.current!.value,
+              customer: customerRef.current.value,
               amount: amount,
               date: new Date().toISOString(),
               status: "pending",
@@ -197,8 +211,7 @@ export default function TransactionComponent() {
                 <button onClick={handleEdit(t)}>✏️</button>
                 <button onClick={() => {
                   removeTransaction(t.id);
-                  setCurrentTransaction(null);
-                  setAddOrEdit(false);
+                  resetContext();
                 }}>🗑️</button>
               </td>
             </tr>
