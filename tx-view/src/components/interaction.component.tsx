@@ -228,6 +228,7 @@ export default function TransactionComponent() {
             />
             : <label>{currentTransaction.customer}</label>
           }
+
           {currentTransaction === null
             ? <input
               ref={amountRef}
@@ -239,6 +240,9 @@ export default function TransactionComponent() {
             />
             : <label>{currentTransaction.amount} ₪</label>
           }
+
+          {currentTransaction !== null &&
+           (<label>{currentTransaction.date.split("T")[0]}</label>)}
 
           {currentTransaction !== null
             ? <div style={{ display: "flex", flexDirection: "row" }}>
