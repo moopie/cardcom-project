@@ -1,0 +1,12 @@
+@Server_HostAddress = http://localhost:5033
+
+POST {{Server_HostAddress}}/calculate/
+Content-Type: application/json
+Accept: application/json
+
+{
+    "customerName": "test 01",
+    "Amount": 100.01
+}
+
+###
