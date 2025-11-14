@@ -81,11 +81,9 @@ export default function TransactionComponent() {
   // Handle current transaction changes
   useEffect(() => {
     if (currentTransaction !== null) {
-      if (customerRef.current && amountRef.current && statusRef.current) {
-        customerRef.current.value = currentTransaction.customer;
-        amountRef.current.value = currentTransaction.amount.toString();
-        statusRef.current.value = currentTransaction.status;
-      }
+      if (customerRef.current) customerRef.current.value = currentTransaction.customer;
+      if (amountRef.current) amountRef.current.value = currentTransaction.amount.toString();
+      if (statusRef.current) statusRef.current.value = currentTransaction.status;
     }
   }, [currentTransaction]);
 
