@@ -1,5 +1,6 @@
-// App.tsx
-import React, { useState, useRef, useEffect } from "react";
+"use client";
+
+import { useState, useRef, useEffect } from "react";
 import "./interaction.component.css";
 
 interface Transaction {
@@ -21,9 +22,9 @@ export default function TransactionComponent() {
 
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
-  const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
-  const [edit, setEdit] = useState(false);
-  const nameRef = useRef<HTMLInputElement>(null);
+  const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
+  const [enableAddOrEdit, setAddOrEdit] = useState(false);
+  const customerRef = useRef<HTMLInputElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
   const statusRef = useRef<HTMLSelectElement>(null);
 
@@ -32,7 +33,6 @@ export default function TransactionComponent() {
 
   const filtered = transactions.filter(t => {
     const isoDateOnly = t.date.split("T")[0]
-    console.log("Filtering:", { statusFilter, dateFilter, transactionDate: isoDateOnly, result: dateFilter === isoDateOnly });
     return (
       (!statusFilter || t.status === statusFilter) &&
       (!dateFilter || dateFilter === isoDateOnly)
@@ -48,7 +48,6 @@ export default function TransactionComponent() {
       return sortOrder === "asc" ? valA - valB : valB - valA;
     }
 
-    // strings (name, date, status)
     return sortOrder === "asc"
       ? String(valA).localeCompare(String(valB))
       : String(valB).localeCompare(String(valA));
@@ -69,14 +68,14 @@ export default function TransactionComponent() {
   };
 
   useEffect(() => {
-    if (editTransaction !== null) {
-      if (nameRef.current && amountRef.current && statusRef.current) {
-        nameRef.current.value = editTransaction.customer;
-        amountRef.current.value = editTransaction.amount.toString();
-        statusRef.current.value = editTransaction.status;
+    if (currentTransaction !== null) {
+      if (customerRef.current && amountRef.current && statusRef.current) {
+        customerRef.current.value = currentTransaction.customer;
+        amountRef.current.value = currentTransaction.amount.toString();
+        statusRef.current.value = currentTransaction.status;
       }
     }
-  }, [editTransaction]);
+  }, [currentTransaction]);
 
   useEffect(() => {
     fetch("/data.json")
@@ -88,6 +87,14 @@ export default function TransactionComponent() {
         console.error("Error fetching data:", err);
       });
   }, []);
+
+  const resetContext = () => {
+      if (customerRef.current) customerRef.current.value = "";
+      if (amountRef.current) amountRef.current.value = "";
+      if (statusRef.current) statusRef.current.value = "";
+    setCurrentTransaction(null);
+    setAddOrEdit(false);
+  }
 
   const handleSort = (field: keyof Transaction) => {
     if (sortField === field) {
@@ -102,21 +109,21 @@ export default function TransactionComponent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (nameRef.current && amountRef.current) {
-      if (nameRef.current.value !== "" && amountRef.current.value !== "") {
+    if (customerRef.current && amountRef.current) {
+      if (customerRef.current.value !== "" && amountRef.current.value !== "") {
         const amount = Number(amountRef.current.value);
         if (!isNaN(amount) && amount > 0) {
           console.log(`transactions: ${transactions.length}`);
-          if (editTransaction !== null) {
-            updateTransaction(editTransaction.id, {
-              customer: nameRef.current.value,
+          if (currentTransaction !== null) {
+            updateTransaction(currentTransaction.id, {
+              customer: customerRef.current.value,
               amount: amount,
-              status: statusRef.current ? statusRef.current.value as 'pending' | 'accepted' | 'rejected' : editTransaction.status,
+              status: statusRef.current ? statusRef.current.value as 'pending' | 'accepted' | 'rejected' : currentTransaction.status,
             });
           } else {
             addTransaction({
               id: transactions.length + 1,
-              customer: nameRef.current!.value,
+              customer: customerRef.current!.value,
               amount: amount,
               date: new Date().toISOString(),
               status: "pending",
@@ -124,17 +131,13 @@ export default function TransactionComponent() {
           }
         }
       }
-      nameRef.current.value = "";
-      amountRef.current.value = "";
-      setEditTransaction(null);
-      setEdit(false);
+      resetContext();
     }
   };
 
   const handleEdit = (tx: Transaction) => () => {
-    setEdit(true);
-    setEditTransaction(tx);
-    console.log("Edit transaction", tx);
+    setAddOrEdit(true);
+    setCurrentTransaction(tx);
   }
 
   return (
@@ -146,8 +149,7 @@ export default function TransactionComponent() {
           value={statusFilter}
           onChange={e => {
             setStatusFilter(e.target.value);
-            setEditTransaction(null);
-            setEdit(false);
+            resetContext();
           }}>
           <option value="">כל הסטטוסים</option>
           <option value="accepted">מאושר</option>
@@ -159,10 +161,8 @@ export default function TransactionComponent() {
           type="date"
           value={dateFilter}
           onChange={e => {
-            console.log("Date filter changed:", e.target.value);
             setDateFilter(e.target.value);
-            setEditTransaction(null);
-            setEdit(false);
+            resetContext();
           }}
         />
       </div>
@@ -171,13 +171,13 @@ export default function TransactionComponent() {
         <thead>
           <tr>
             <th onClick={() => handleSort("customer")}>{sortField === "customer" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
-שם הלקוח</th>
+              שם הלקוח</th>
             <th onClick={() => handleSort("date")}>{sortField === "date" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
-תאריך</th>
+              תאריך</th>
             <th onClick={() => handleSort("amount")}>{sortField === "amount" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
-סכום</th>
+              סכום</th>
             <th onClick={() => handleSort("status")}>{sortField === "status" ? (sortOrder === "asc" ? "↑" : "↓") : ""}
-סטטוס</th>
+              סטטוס</th>
             <th></th>
           </tr>
         </thead>
@@ -197,8 +197,8 @@ export default function TransactionComponent() {
                 <button onClick={handleEdit(t)}>✏️</button>
                 <button onClick={() => {
                   removeTransaction(t.id);
-                  setEditTransaction(null);
-                  setEdit(false);
+                  setCurrentTransaction(null);
+                  setAddOrEdit(false);
                 }}>🗑️</button>
               </td>
             </tr>
@@ -206,10 +206,10 @@ export default function TransactionComponent() {
         </tbody>
       </table>
 
-      {edit ?
+      {enableAddOrEdit ?
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "row", gap: "8px", maxWidth: 240 }}>
           <input
-            ref={nameRef}
+            ref={customerRef}
             placeholder="Customer"
             required
             minLength={3}
@@ -218,13 +218,14 @@ export default function TransactionComponent() {
             ref={amountRef}
             type="number"
             placeholder="Amount"
-            min={1}
+            min={0.01}
+            step="0.01"
             required
           />
 
-          {editTransaction !== null
+          {currentTransaction !== null
             ? <div style={{ display: "flex", flexDirection: "row" }}>
-              <span>Current status: {editTransaction.status}</span>
+              <span>Current status: {currentTransaction.status}</span>
               <select ref={statusRef} >
                 <option value="accepted">מאושר</option>
                 <option value="pending">ממתין</option>
@@ -235,17 +236,10 @@ export default function TransactionComponent() {
           }
 
           <button type="submit">Save</button>
-          <button onClick={() => setEdit(false)}>Cancel</button>
+          <button onClick={() => resetContext()}>Cancel</button>
         </form>
         : <button onClick={() => {
-          if (nameRef.current) {
-            nameRef.current.value = "";
-          }
-          if (amountRef.current) {
-            amountRef.current.value = "";
-          }
-          setEditTransaction(null);
-          setEdit(true);
+          resetContext();
         }}>הוסף עסקה</button>
       }
     </div>
