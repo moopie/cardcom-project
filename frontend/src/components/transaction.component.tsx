@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import "./transaction.component.css";
-import InteractionItemComponent from "./transactionItem.component";
+import TransactionItemComponent from "./transactionItem.component";
 import TransactionEditComponent from "./transactionEdit.component";
 
 export interface Transaction {
@@ -162,7 +162,7 @@ export default function TransactionComponent() {
         </thead>
         <tbody>
           {filtered.map(t => (
-            <InteractionItemComponent
+            <TransactionItemComponent
               key={t.id}
               transaction={t}
               edit={handleEditTransaction}

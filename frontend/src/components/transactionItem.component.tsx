@@ -1,7 +1,7 @@
 
 import type { Transaction } from "./transaction.component";
 
-interface InteractionItemProps {
+interface TransactionItemProps {
     key: number;
     transaction: Transaction;
     edit: (tx: Transaction) => void;
@@ -9,7 +9,7 @@ interface InteractionItemProps {
     reset: () => void;
 }
 
-export default function InteractionItemComponent({ transaction, edit, remove, reset }: InteractionItemProps) {
+export default function TransactionItemComponent({ transaction, edit, remove, reset }: TransactionItemProps) {
     return (
         <tr
             key={transaction.id}
