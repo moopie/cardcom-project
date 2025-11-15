@@ -16,7 +16,7 @@ statuses = ["pending", "accepted", "rejected"]
 def random_date() -> datetime:
     return (datetime.now() - timedelta(days=random.randint(0, 365)))
 
-def gen_values(count: int) -> None:
+def gen_data(count: int) -> None:
     """
     Generator that creates a JSON file of transactions.
 
@@ -47,4 +47,4 @@ def gen_values(count: int) -> None:
         f.write("]\n")
 
 if __name__ == "__main__":
-    gen_values(total_count)
+    gen_data(total_count)

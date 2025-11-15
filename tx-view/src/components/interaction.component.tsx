@@ -101,9 +101,9 @@ export default function TransactionComponent() {
 
   // Reset states of form and inputs
   const resetState = () => {
-      if (customerRef.current) customerRef.current.value = "";
-      if (amountRef.current) amountRef.current.value = "";
-      if (statusRef.current) statusRef.current.value = "";
+    if (customerRef.current) customerRef.current.value = "";
+    if (amountRef.current) amountRef.current.value = "";
+    if (statusRef.current) statusRef.current.value = "";
     setCurrentTransaction(null);
     setAddOrEdit(false);
   }
@@ -137,11 +137,11 @@ export default function TransactionComponent() {
         status: "pending",
       });
     } else {
-        updateTransaction(currentTransaction.id, {
-          customer: currentTransaction.customer,
-          amount: currentTransaction.amount,
-          status: statusRef.current ? statusRef.current.value as 'pending' | 'accepted' | 'rejected' : currentTransaction.status,
-        });
+      updateTransaction(currentTransaction.id, {
+        customer: currentTransaction.customer,
+        amount: currentTransaction.amount,
+        status: statusRef.current ? statusRef.current.value as 'pending' | 'accepted' | 'rejected' : currentTransaction.status,
+      });
     }
     resetState();
   };
@@ -208,6 +208,7 @@ export default function TransactionComponent() {
                 <button onClick={handleEditTransaction(t)}>✏️</button>
                 <button onClick={() => {
                   removeTransaction(t.id);
+                  resetState();
                 }}>🗑️</button>
               </td>
             </tr>
@@ -218,7 +219,7 @@ export default function TransactionComponent() {
       {enableAddOrEdit ?
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "row", gap: "8px", maxWidth: 240 }}>
           {currentTransaction === null
-           ?  <input
+            ? <input
               ref={customerRef}
               placeholder="Customer"
               required
@@ -240,7 +241,7 @@ export default function TransactionComponent() {
           }
 
           {currentTransaction !== null &&
-           (<label>{currentTransaction.date.split("T")[0]}</label>)}
+            (<label>{currentTransaction.date.split("T")[0]}</label>)}
 
           {currentTransaction !== null
             ? <div style={{ display: "flex", flexDirection: "row" }}>
