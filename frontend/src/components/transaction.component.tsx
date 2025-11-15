@@ -113,8 +113,8 @@ export default function TransactionComponent() {
     }
   };
 
+  // When edit button is pressed
   const handleEditTransaction = (tx: Transaction) => {
-    console.log("Editing transaction:", tx);
     setAddOrEdit(true);
     setCurrentTransaction(tx);
   }
@@ -176,7 +176,6 @@ export default function TransactionComponent() {
       {enableAddOrEdit ?
         <TransactionEditComponent
           transaction={currentTransaction}
-          //handleSubmit={handleSubmit}
           add={(customer: string, amount: number) => {
             addTransaction({
               id: transactions.length + 1,
@@ -187,8 +186,6 @@ export default function TransactionComponent() {
             })}}
           edit={(tx: Transaction) => {
             updateTransaction(tx.id, {
-              customer: tx.customer,
-              amount: tx.amount,
               status: tx.status,
             })}}
           reset={resetState}
