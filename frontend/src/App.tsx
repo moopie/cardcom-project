@@ -1,5 +1,5 @@
 import './App.css'
-import TransactionComponent from './components/interaction.component'
+import TransactionComponent from './components/transaction.component'
 
 function App() {
 

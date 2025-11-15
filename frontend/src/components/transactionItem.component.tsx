@@ -1,5 +1,5 @@
 
-import type { Transaction } from "./interaction.component";
+import type { Transaction } from "./transaction.component";
 
 interface InteractionItemProps {
     key: number;

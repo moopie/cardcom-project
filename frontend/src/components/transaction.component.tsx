@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import "./interaction.component.css";
-import InteractionItemComponent from "./interationItem.component";
-import InteractionEditComponent from "./interactonEdit.component";
+import "./transaction.component.css";
+import InteractionItemComponent from "./transactionItem.component";
+import TransactionEditComponent from "./transactionEdit.component";
 
 export interface Transaction {
   id: number;
@@ -174,7 +174,7 @@ export default function TransactionComponent() {
       </table>
 
       {enableAddOrEdit ?
-        <InteractionEditComponent
+        <TransactionEditComponent
           transaction={currentTransaction}
           //handleSubmit={handleSubmit}
           add={(customer: string, amount: number) => {

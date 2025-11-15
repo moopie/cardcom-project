@@ -1,14 +1,14 @@
 import { useRef, useEffect, type FormEvent } from "react";
-import type { Transaction } from "./interaction.component";
+import type { Transaction } from "./transaction.component";
 
-interface interactionEditProps {
+interface TransactionEditProps {
     transaction: Transaction | null;
     add: (customer: string, amount: number) => void;
     edit: (tx: Transaction) => void;
     reset: () => void;
 }
 
-export default function InteractionEditComponent({ transaction, add, reset, edit }: interactionEditProps) {
+export default function TransactionEditComponent({ transaction, add, reset, edit }: TransactionEditProps) {
 
     // Refs for form inputs
     const customerRef = useRef<HTMLInputElement>(null);
@@ -39,7 +39,6 @@ export default function InteractionEditComponent({ transaction, add, reset, edit
             if (amountRef.current) amountRef.current.value = "";
             if (statusRef.current) statusRef.current.value = "";
         } else {
-
             if (customerRef.current) customerRef.current.value = transaction.customer;
             if (amountRef.current) amountRef.current.value = transaction.amount.toString();
             if (statusRef.current) statusRef.current.value = transaction.status;
