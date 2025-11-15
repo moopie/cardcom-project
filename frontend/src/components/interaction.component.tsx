@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import "./interaction.component.css";
 
 interface Transaction {
@@ -36,18 +36,21 @@ export default function TransactionComponent() {
   const amountRef = useRef<HTMLInputElement>(null);
   const statusRef = useRef<HTMLSelectElement>(null);
 
-  // Sorting and ordering
+  // Sorting and ordering states
   const [sortField, setSortField] = useState<keyof Transaction | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  // Only show filtered transactions
-  const filtered = transactions.filter(t => {
+  // Function to use in filtering transactions
+  const transactionFilter = useCallback((t: Transaction) => {
     const isoDateOnly = t.date.split("T")[0]
     return (
       (!statusFilter || t.status === statusFilter) &&
       (!dateFilter || dateFilter === isoDateOnly)
     );
-  }).sort((a, b) => {
+  }, [dateFilter, statusFilter]);
+
+  // Function to use in sorting transactions
+  const transactionSort = useCallback((a: Transaction, b: Transaction) => {
     if (!sortField) return 0;
 
     const valA = a[sortField];
@@ -62,7 +65,12 @@ export default function TransactionComponent() {
     return sortOrder === "asc"
       ? String(valA).localeCompare(String(valB))
       : String(valB).localeCompare(String(valA));
-  });
+  }, [sortField, sortOrder]);
+
+  // Filtered and sorted transactions
+  const filtered = useMemo(() => {
+    return transactions.filter(transactionFilter).sort(transactionSort);
+  }, [transactions, transactionFilter, transactionSort]);
 
   const addTransaction = (tx: Transaction) => {
     setTransactions(prev => [...prev, { ...tx }]);
@@ -241,17 +249,17 @@ export default function TransactionComponent() {
           }
 
           {currentTransaction !== null &&
-          (
-            <div style={{ display: "flex", flexDirection: "row" }}>
-              <label>{currentTransaction.date.split("T")[0]}</label>
-              <span>Current status: {currentTransaction.status}</span>
-              <select ref={statusRef}>
-                <option value="accepted">מאושר</option>
-                <option value="pending">ממתין</option>
-                <option value="rejected">נדחה</option>
-              </select>
-            </div>
-          )}
+            (
+              <div style={{ display: "flex", flexDirection: "row" }}>
+                <label>{currentTransaction.date.split("T")[0]}</label>
+                <span>Current status: {currentTransaction.status}</span>
+                <select ref={statusRef}>
+                  <option value="accepted">מאושר</option>
+                  <option value="pending">ממתין</option>
+                  <option value="rejected">נדחה</option>
+                </select>
+              </div>
+            )}
 
           <button type="submit">Save</button>
           <button onClick={() => resetState()}>Cancel</button>
