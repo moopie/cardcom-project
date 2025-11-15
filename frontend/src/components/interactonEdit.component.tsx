@@ -1,14 +1,14 @@
 import { useRef, useEffect, type FormEvent } from "react";
 import type { Transaction } from "./interaction.component";
 
-interface InteractionItemComponentProps {
+interface interactionEditProps {
     transaction: Transaction | null;
     add: (customer: string, amount: number) => void;
     edit: (tx: Transaction) => void;
     reset: () => void;
 }
 
-export default function InteractionEditComponent({ transaction, add, reset, edit }: InteractionItemComponentProps) {
+export default function InteractionEditComponent({ transaction, add, reset, edit }: interactionEditProps) {
 
     // Refs for form inputs
     const customerRef = useRef<HTMLInputElement>(null);
