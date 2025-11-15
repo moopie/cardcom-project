@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import "./interaction.component.css";
+import InteractionItemComponent from "./interationItem.component";
+import InteractionEditComponent from "./interactonEdit.component";
 
-interface Transaction {
+export interface Transaction {
   id: number;
   customer: string;
   amount: number;
@@ -30,11 +32,6 @@ export default function TransactionComponent() {
 
   // If we are in an edit or add mode
   const [enableAddOrEdit, setAddOrEdit] = useState(false);
-
-  // Refs for form inputs
-  const customerRef = useRef<HTMLInputElement>(null);
-  const amountRef = useRef<HTMLInputElement>(null);
-  const statusRef = useRef<HTMLSelectElement>(null);
 
   // Sorting and ordering states
   const [sortField, setSortField] = useState<keyof Transaction | null>(null);
@@ -76,8 +73,9 @@ export default function TransactionComponent() {
     setTransactions(prev => [...prev, { ...tx }]);
   };
 
-  const removeTransaction = (id: number) => {
-    setTransactions(prev => prev.filter(t => t.id !== id));
+  const removeTransaction = (tx: Transaction) => {
+    console.log("Removing transaction:", tx);
+    setTransactions(prev => prev.filter(t => t.id !== tx.id));
   };
 
   const updateTransaction = (id: number, updated: Partial<Transaction>) => {
@@ -85,15 +83,6 @@ export default function TransactionComponent() {
       prev.map(t => (t.id === id ? { ...t, ...updated } : t))
     );
   };
-
-  // Handle current transaction changes
-  useEffect(() => {
-    if (currentTransaction !== null) {
-      if (customerRef.current) customerRef.current.value = currentTransaction.customer;
-      if (amountRef.current) amountRef.current.value = currentTransaction.amount.toString();
-      if (statusRef.current) statusRef.current.value = currentTransaction.status;
-    }
-  }, [currentTransaction]);
 
   // Fetch transaction data
   useEffect(() => {
@@ -109,9 +98,6 @@ export default function TransactionComponent() {
 
   // Reset states of form and inputs
   const resetState = () => {
-    if (customerRef.current) customerRef.current.value = "";
-    if (amountRef.current) amountRef.current.value = "";
-    if (statusRef.current) statusRef.current.value = "";
     setCurrentTransaction(null);
     setAddOrEdit(false);
   }
@@ -127,34 +113,8 @@ export default function TransactionComponent() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (currentTransaction === null) {
-      if (!customerRef.current || !amountRef.current) return;
-
-      const customer = customerRef.current.value;
-      const amount = Number(amountRef.current.value);
-
-      if (customer === "" || isNaN(amount) || amount <= 0) return;
-
-      addTransaction({
-        id: transactions.length + 1,
-        customer: customer,
-        amount: amount,
-        date: new Date().toISOString(),
-        status: "pending",
-      });
-    } else {
-      updateTransaction(currentTransaction.id, {
-        customer: currentTransaction.customer,
-        amount: currentTransaction.amount,
-        status: statusRef.current ? statusRef.current.value as 'pending' | 'accepted' | 'rejected' : currentTransaction.status,
-      });
-    }
-    resetState();
-  };
-
-  const handleEditTransaction = (tx: Transaction) => () => {
+  const handleEditTransaction = (tx: Transaction) => {
+    console.log("Editing transaction:", tx);
     setAddOrEdit(true);
     setCurrentTransaction(tx);
   }
@@ -202,68 +162,37 @@ export default function TransactionComponent() {
         </thead>
         <tbody>
           {filtered.map(t => (
-            <tr
+            <InteractionItemComponent
               key={t.id}
-              style={{
-                background: t.amount > 10000 ? "#fff5cc" : "white",
-              }}
-            >
-              <td className="text">{t.customer}</td>
-              <td className="text">{t.date}</td>
-              <td className="text">{t.amount.toLocaleString()} ₪</td>
-              <td className="text">{t.status}</td>
-              <td>
-                <button onClick={handleEditTransaction(t)}>✏️</button>
-                <button onClick={() => {
-                  removeTransaction(t.id);
-                  resetState();
-                }}>🗑️</button>
-              </td>
-            </tr>
+              transaction={t}
+              edit={handleEditTransaction}
+              remove={removeTransaction}
+              reset={resetState}
+            />
           ))}
         </tbody>
       </table>
 
       {enableAddOrEdit ?
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "row", gap: "8px", maxWidth: 240 }}>
-          {currentTransaction === null
-            ? <input
-              ref={customerRef}
-              placeholder="Customer"
-              required
-              minLength={3}
-            />
-            : <label>{currentTransaction.customer}</label>
-          }
-
-          {currentTransaction === null
-            ? <input
-              ref={amountRef}
-              type="number"
-              placeholder="Amount"
-              min={0.01}
-              step="0.01"
-              required
-            />
-            : <label>{currentTransaction.amount} ₪</label>
-          }
-
-          {currentTransaction !== null &&
-            (
-              <div style={{ display: "flex", flexDirection: "row" }}>
-                <label>{currentTransaction.date.split("T")[0]}</label>
-                <span>Current status: {currentTransaction.status}</span>
-                <select ref={statusRef}>
-                  <option value="accepted">מאושר</option>
-                  <option value="pending">ממתין</option>
-                  <option value="rejected">נדחה</option>
-                </select>
-              </div>
-            )}
-
-          <button type="submit">Save</button>
-          <button onClick={() => resetState()}>Cancel</button>
-        </form>
+        <InteractionEditComponent
+          transaction={currentTransaction}
+          //handleSubmit={handleSubmit}
+          add={(customer: string, amount: number) => {
+            addTransaction({
+              id: transactions.length + 1,
+              customer: customer,
+              amount: amount,
+              date: new Date().toISOString(),
+              status: "pending",
+            })}}
+          edit={(tx: Transaction) => {
+            updateTransaction(tx.id, {
+              customer: tx.customer,
+              amount: tx.amount,
+              status: tx.status,
+            })}}
+          reset={resetState}
+        />
         : <button onClick={() => {
           setAddOrEdit(true);
         }}>הוסף עסקה</button>
