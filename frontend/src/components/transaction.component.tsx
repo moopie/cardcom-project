@@ -31,7 +31,7 @@ export default function TransactionComponent() {
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
 
   // If we are in an edit or add mode
-  const [enableAddOrEdit, setAddOrEdit] = useState(false);
+  const [isAddButtonEnabled, setIsAddButtonEnabled] = useState(false);
 
   // Sorting and ordering states
   const [sortField, setSortField] = useState<keyof Transaction | null>(null);
@@ -99,7 +99,7 @@ export default function TransactionComponent() {
   // Reset states of form and inputs
   const resetState = () => {
     setCurrentTransaction(null);
-    setAddOrEdit(false);
+    setIsAddButtonEnabled(false);
   }
 
   const handleSort = (field: keyof Transaction) => {
@@ -115,7 +115,7 @@ export default function TransactionComponent() {
 
   // When edit button is pressed
   const handleEditTransaction = (tx: Transaction) => {
-    setAddOrEdit(true);
+    setIsAddButtonEnabled(true);
     setCurrentTransaction(tx);
   }
 
@@ -173,7 +173,7 @@ export default function TransactionComponent() {
         </tbody>
       </table>
 
-      {enableAddOrEdit ?
+      {isAddButtonEnabled ?
         <TransactionEditComponent
           transaction={currentTransaction}
           add={(customer: string, amount: number) => {
@@ -192,7 +192,7 @@ export default function TransactionComponent() {
           reset={resetState}
         />
         : <button onClick={() => {
-          setAddOrEdit(true);
+          setIsAddButtonEnabled(true);
         }}>הוסף עסקה</button>
       }
     </div>
