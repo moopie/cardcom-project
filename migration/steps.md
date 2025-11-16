@@ -17,14 +17,16 @@ rewrite the whole app from top to bottom
 
 I suggest a full rewrite because of these reasons:
 
-1. Latest version of knockout is from 2019, so it is not actively developed and may contain some vulnerabilities
-2. Adding react to an existing codebase will increase the amount of libraries used and may lead to a confusing mess
+1. Latest version of knockout is from 2019, so it is not actively developed and can contain some vulnerabilities
+2. Adding react to an existing codebase will increase the amount of libraries used and can lead to a confusing mess
 
 Initial pilot should only contain the main components and most important api calls
 
 ## Backend
 
-Hopefully other than the authentication there won't be any major api changes, but if there are
+Ideally, other than the authentication, the API can be reused with minimal changes
+
+In case there will be, the backend team will need to be consulted
 
 - Notify the backend team of the potential changes
 - Confirm the schema with them
