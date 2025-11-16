@@ -177,8 +177,9 @@ export default function TransactionComponent() {
         <TransactionEditComponent
           transaction={currentTransaction}
           add={(customer: string, amount: number) => {
+            const lastId = transactions?.at(-1)?.id || 0;
             addTransaction({
-              id: transactions.length + 1,
+              id: lastId + 1,
               customer: customer,
               amount: amount,
               date: new Date().toISOString(),
